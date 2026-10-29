@@ -1,0 +1,40 @@
+# 前端构建阶段
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# ============ 国内 npm 镜像加速 ============
+# 注意：node:20-alpine 自带 npm 10，只认 registry 这一个合法配置项。
+# 之前设置的 disturl / electron_mirror / sass_binary_site / sharp_binary_host /
+# sharp_dist_base_url 在 npm 10 下会直接报 "not a valid npm option" 导致构建失败，
+# 且本项目未使用 node-sass / electron / sharp，这些配置本来也不需要。
+RUN npm config set registry https://registry.npmmirror.com \
+    && echo "Using npm registry: $(npm config get registry)"
+
+# 先单独复制 package 文件，利用层缓存
+COPY frontend/package*.json ./
+RUN npm install --no-audit --no-fund --prefer-offline
+
+# 复制源码并打包
+COPY frontend/ ./
+RUN npm run build
+
+# Nginx 运行阶段
+FROM nginx:alpine
+
+# 复制构建产物
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# 复制 Nginx 配置
+#  - nginx-main.conf：主配置（pid 与临时目录指向 /tmp，适配非 root 运行）
+#  - nginx.conf：server 块（静态文件 + /api 反代）
+COPY docker/nginx-main.conf /etc/nginx/nginx.conf
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+# nginx:alpine 自带 nginx 用户（uid 101）；非 root 运行
+# 非 root 需要主配置把 pid / 临时目录放到 /tmp，否则会因权限不足起不来
+USER nginx
+
+CMD ["nginx", "-g", "daemon off;"]

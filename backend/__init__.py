@@ -1,0 +1,1 @@
+# Meeting Copilot backend package

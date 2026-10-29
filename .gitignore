@@ -1,0 +1,369 @@
+# ==========================================
+# meeting-copilot - Git Ignore
+# ==========================================
+#
+# 安全底线：本项目会处理「会议录音 / 转写全文 / 会议纪要 / 内部 OA 地址」，
+# 这些都是私有内容，默认一律不入库。
+#
+# 维护约定：
+#   1. 新增任何带 .env / 凭证 / 会议产物的文件前，先在本文件登记规则。
+#   2. 示例文件（*.example / *.sample / *.template）需用 ! 前缀显式放行。
+#   3. 提交前自检：  git status --ignored
+#                   git check-ignore -v <可疑文件>
+#   4. 若某个文件曾经被提交过，光加规则无效，必须执行：
+#                   git rm --cached -- <路径>
+#      并用 filter-repo/BFG 从历史中彻底清除。
+
+# ------------------
+# Environment & Secrets
+# ------------------
+# 覆盖所有层级的 .env 及其变体（含 .env.dev / .env.production / .env.local 等）
+**/.env
+**/.env.*
+**/*.env
+.env
+.env.*
+# 放行示例文件（放行规则必须写在忽略规则之后）
+!**/.env.example
+!**/.env.sample
+!**/.env.template
+!**/*.env.example
+!**/*.env.sample
+
+# 密钥 / 证书 / 私钥
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/*.jks
+**/*.keystore
+**/*.cer
+**/*.crt
+**/*.der
+**/*.csr
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+*.gpg
+*.pgp
+*.asc
+.netrc
+.npmrc
+.pypirc
+**/.htpasswd
+**/.netrc
+
+# 通用机密文件
+credentials.json
+secrets.json
+secrets.yaml
+secrets.yml
+**/credentials*.json
+**/secrets*.json
+**/secrets*.yaml
+**/secrets*.yml
+**/*_secret*
+**/*_secrets*
+**/*.secret
+**/*.secrets
+**/*secret*.txt
+**/secret.*
+.envrc
+**/.envrc
+.direnv/
+**/.direnv/
+
+# Token / 会话凭据
+# 注意：只匹配数据文件，不要用 auth_token* 这类宽通配符，
+# 否则会误伤 backend/core/auth_token.py 这类源码。
+**/*token*.json
+**/*token*.txt
+**/*.token
+**/*.jwt
+**/*.jwk
+auth_token*.json
+auth_token*.txt
+.session_token
+session*.json
+cookies.txt
+**/cookies*.txt
+**/*_rsa*.pem
+
+# ------------------
+# Python
+# ------------------
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+*.tar.gz
+
+# 虚拟环境
+.venv/
+.venv*/
+venv/
+ENV/
+env/
+.python-version
+
+# Unit test / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+.pyright/
+.pyre/
+.ipynb_checkpoints/
+.hypothesis/
+
+# ------------------
+# Node.js
+# ------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.npm/
+.yarn/
+.yarn/cache
+.yarn/install-state.gz
+.pnpm-store/
+*.tsbuildinfo
+.vite/
+.nuxt/
+.output/
+.turbo/
+.swc/
+
+# 包锁文件（按需：团队协作建议提交 package-lock.json 保证依赖可复现）
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build output
+frontend/dist/
+frontend/dist-ssr/
+frontend/build/
+frontend/.vite/
+frontend/coverage/
+
+# ------------------
+# Vue / Vite
+# ------------------
+*.local
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ------------------
+# Editor directories
+# ------------------
+.idea/
+.vscode/
+.vscode-server/
+*.swp
+*.swo
+*~
+*.bak
+*.orig
+*.rej
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.history/
+*.sublime-workspace
+*.sublime-project
+
+# ------------------
+# AI / 助手工具本地状态（可能含对话中的私有数据）
+# ------------------
+.claude/
+.workbuddy/
+.impeccable.md
+.cursor/
+.continue/
+.aider*
+.codeium/
+.windsurf/
+.roo/
+.gemini/
+.qwen/
+.cline/
+.agents/
+
+# ------------------
+# 会议相关产物（核心私有数据：录音 / 转写 / 纪要）
+# ------------------
+# 音频
+*.wav
+*.mp3
+*.m4a
+*.flac
+*.ogg
+*.aac
+*.wma
+*.pcm
+*.webm
+*.amr
+*.aiff
+*.opus
+# 视频（会议录屏）
+*.mp4
+*.mov
+*.mkv
+*.avi
+*.flv
+*.wmv
+*.mpg
+*.mpeg
+*.m4v
+# 注意：不要忽略 *.ts —— 那是 TypeScript 源码扩展名。
+# 会议文档产物（纪要、导出报告）
+*.docx
+*.doc
+*.xlsx
+*.xls
+*.pptx
+*.ppt
+*.pdf
+*.csv
+*.rtf
+*.odt
+*.epub
+# 转写 / 纪要内容文件
+# 只匹配「内容扩展名」，避免 *transcript* 这类裸通配符误伤
+# backend/api/transcript.py 之类的源码文件。
+**/transcript/
+**/transcripts/
+**/*transcript*.md
+**/*transcript*.txt
+**/*transcript*.srt
+**/*transcript*.vtt
+**/minutes/
+**/*minutes*.md
+**/*minutes*.txt
+**/*minutes*.docx
+**/*meeting_notes*.md
+**/*meeting_notes*.txt
+# 运行时数据目录（限定在项目根与常见运行时位置，避免误伤未来的源码目录）
+/data/
+/storage/
+/output/
+/uploads/
+/media/
+/downloads/
+/exports/
+/attachments/
+/recordings/
+/summaries/
+/tmp/
+/temp/
+backend/data/
+backend/storage/
+backend/uploads/
+backend/output/
+docker/data/
+docker/volumes/
+**/transcript/
+!meeting_summary_templates.json
+
+# ------------------
+# Database
+# ------------------
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+*.mdb
+*.accdb
+*.realm
+# 数据库导出 / 备份
+*.sql
+*.sql.gz
+*.sql.zip
+*.dump
+dump.sql
+backup.sql
+**/mysql_data/
+**/minio_data/
+**/*.rdb
+
+# ------------------
+# Docker
+# ------------------
+/docker/docker-compose.yml
+/docker/docker-compose.local.yml
+/docker/docker-compose.override.yml
+/docker/volumes/
+docker/images/
+docker/env.conf
+docker/data/
+**/docker-data/
+
+# ------------------
+# Logs
+# ------------------
+logs/
+*.log.*
+# 只忽略审计日志「数据文件」，不要用裸的 **/audit_log*，
+# 否则会误伤 backend/api/audit_log.py、backend/models/audit_log.py。
+**/audit_logs/
+**/audit-logs/
+**/audit_log*.log
+**/audit_log*.csv
+**/audit_log*.json
+**/access.log
+**/error.log
+
+# ------------------
+# Temp files
+# ------------------
+tmp/
+temp/
+*.tmp
+*.temp
+.cache/
+*.pid
+*.seed
+*.pid.lock
+*.bak.lock
+.eslintcache
+.stylelintcache
+
+# ------------------
+# Misc
+# ------------------
+*.orig
+*.rej
+*.zip
+*.tar
+*.tgz
+*.7z
+*.rar
+.DS_Store
+Thumbs.db

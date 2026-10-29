@@ -1,0 +1,61 @@
+FROM python:3.11-slim
+
+# ============ 镜像源：腾讯云（默认）/ Tsinghua 兜底 ============
+ARG APT_MIRROR=mirrors.cloud.tencent.com
+ARG PIP_INDEX=https://mirrors.cloud.tencent.com/pypi/simple
+
+# 配置 apt 镜像
+RUN if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
+      sed -i "s|deb.debian.org|${APT_MIRROR}|g" /etc/apt/sources.list.d/debian.sources && \
+      sed -i "s|security.debian.org|${APT_MIRROR}|g" /etc/apt/sources.list.d/debian.sources; \
+    elif [ -f /etc/apt/sources.list ]; then \
+      sed -i "s|deb.debian.org|${APT_MIRROR}|g" /etc/apt/sources.list && \
+      sed -i "s|security.debian.org|${APT_MIRROR}|g" /etc/apt/sources.list; \
+    fi
+
+# 配置 pip 永久镜像
+RUN mkdir -p /root/.pip && \
+    printf "[global]\nindex-url = ${PIP_INDEX}\ntrusted-host = mirrors.cloud.tencent.com\n\
+timeout = 300\ndisable-pip-version-check = true\n" > /root/.pip/pip.conf
+
+WORKDIR /workspace
+
+# ============ 系统依赖 ============
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        gcc \
+        libmariadb-dev \
+        curl \
+        pandoc \
+        ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# ============ pip 升级 ============
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+
+# ============ Python 依赖（无 torch / funasr / modelscope） ============
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# ============ 复制业务代码与模板 ============
+COPY backend/ /workspace/backend/
+COPY meeting_summary_templates.json /workspace/meeting_summary_templates.json
+
+RUN mkdir -p /workspace/logs
+
+# 非 root 运行
+RUN useradd --create-home --uid 1000 --shell /bin/bash appuser \
+    && chown -R appuser:appuser /workspace
+USER appuser
+
+EXPOSE 8000
+
+ENV PYTHONPATH=/workspace \
+    TZ=Asia/Shanghai \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONUNBUFFERED=1
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD curl -fsS http://localhost:8000/health || exit 1
+
+CMD ["python", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]

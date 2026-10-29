@@ -1,0 +1,25 @@
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+
+sqlalchemy==2.0.25
+aiomysql==0.2.0
+pymysql==1.1.0
+
+python-dotenv==1.0.0
+python-dateutil==2.8.2
+
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
+cryptography==41.0.7
+
+loguru==0.7.2
+
+# Object storage & HTTP client
+minio==7.2.0
+httpx==0.27.0
+requests==2.31.0
+
+# Document export
+pypandoc==1.11
